@@ -5200,7 +5200,23 @@ h+='<details><summary>Lihat teks prompt</summary><pre class="z9-pre">'+E(pr[OD.a
 h+='<p class="hint" data-zc="1" style="margin:10px 0 0">Kalau hasil terlihat plastik atau pecah saat di-zoom: pilih resolusi tertinggi, minta hanya area pakaian yang diedit, lalu upscale.</p></div>';
 h+='<div class="card"><h3>2. Unggah gambar outfit <span class="hint" style="font-weight:600">(disarankan)</span></h3><p class="hint" data-zc="1">Gambar pertama jadi sampul di galeri. Tambah sisi samping dan belakang untuk fitur Ganti outfit 3 sisi.</p>'+dropHtml(OD.ph.length,6,'Unggah gambar outfit');
 if(OD.ph.length)h+='<div class="z9-ph">'+OD.ph.map(function(p,i){return tileHtml(p,i,OLAB)}).join('')+'</div>';
+h+=oMasterHtml();
 return h+'</div>'}
+function oMasterPrompt(){return ['Attached: (1) the character master sheet, (2) the outfit photo from Pinterest.','Dress the SAME woman from the master sheet in the outfit from the Pinterest photo.','',
+ 'FIRST, look at the Pinterest photo and list every garment and accessory you see, with the exact color, trim, and details (buttons, zipper, embroidery, necklace, shoes). Then dress her in all of them.','',
+ 'KEEP EXACTLY THE SAME: her face, hair, skin tone, body proportions, pose, and the background of the master sheet.','',
+ 'FIT: the outfit follows HER body shape, not the model in the Pinterest photo. Tops sit at her natural waist and follow her shoulders and arms. Bottoms sit at her natural waist and fall naturally from her hips and legs.','',
+ 'Do not change any color, trim, zipper, or item shape. Remove any clothing from the master sheet that is not part of the outfit. No text, no logo, no extra accessories.'].join('\n')}
+function oMasterMark(p){return !!(p&&p.mst)}
+function oMasterDone(){var last=OD.ph[OD.ph.length-1];if(!last)return;OD.ph.pop();OD.ph=OD.ph.filter(function(p){if(oMasterMark(p)){dropId(p.id);return false}return true});last.mst=1;last.l='Outfit master';OD.ph.forEach(function(p){p.cv=0});last.cv=1;OD.ph.unshift(last);oSave();oRender(false)}
+function oMasterRm(){OD.ph=OD.ph.filter(function(p){if(oMasterMark(p)){dropId(p.id);return false}return true});OD.ph.forEach(function(p,i){p.cv=i?0:1});oSave();oRender(false)}
+function oMasterHtml(){var m=(OD.ph||[]).filter(oMasterMark)[0];
+ var h='<div class="z9-sub" style="margin-top:14px;padding-top:12px;border-top:1px solid #e5e5e5"><h4 style="margin:0 0 6px">Atau: outfit dari Pinterest ke master karakter</h4>';
+ h+='<p class="hint" style="margin:0 0 10px">1. Salin prompt, lalu lampirkan master karakter dan foto outfit Pinterest di ChatGPT. 2. Unggah hasilnya di bawah. Gambar ini jadi sampul dan dipakai untuk analisis outfit.</p>';
+ h+='<div class="row"><button type="button" data-z9="copyMP">'+I.copy+'Salin prompt master outfit</button></div>';
+ if(m)h+='<p class="hint" style="margin:10px 0 0">Gambar master terpasang dan jadi sampul.</p><div class="row"><button type="button" class="g" data-z9="mprm">Hapus gambar master</button></div>';
+ else h+='<button type="button" class="z9-drop sm" data-z9="mppick" style="margin-top:10px">'+I.up+'<b>Unggah gambar outfit master</b><span>Hasil ChatGPT, 1 foto</span></button>';
+ return h+'</div>'}
 function oWarn(){var w=[],n=tr(OD.name);if(!OD.ch||!(P.char&&P.char[OD.ch]))w.push(['Pilih karakter pemilik outfit.',0,0]);
 if(!n)w.push(['Nama outfit belum diisi.',0,1]);else if(P.outfit[n]){var o=P.outfit[n];w.push([o.ch&&o.ch!==OD.ch?'Nama ini dipakai outfit milik '+o.ch+'. Pakai nama lain.':'"'+n+'" sudah ada. Isinya akan ditimpa.',0,1])}
 if(!tr(OD.desc))w.push(['Deskripsi outfit belum diisi.',0,1]);
@@ -5289,6 +5305,9 @@ if(a=='again'){PDONE='';PD=pBlank();pRender();return}
 return}
 /* outfit */
 if(a=='mkchar'){hide(el,2);oClosed();try{go('m');setTimeout(function(){var nb=q('#tf [data-flnew]')||q('[data-flnew]');if(nb)nb.click()},80)}catch(x){}return}
+if(a=='copyMP'){copyText(oMasterPrompt(),b);return}
+if(a=='mppick'){curFile(el,function(fs){addPhotos(OD,Array.prototype.slice.call(fs||[],0,1),['Outfit master'],6,oMasterDone)});return}
+if(a=='mprm'){oMasterRm();return}
 if(a=='pick'){curFile(el,function(fs){addPhotos(OD,fs,OLAB,6,function(){oSave();oRender(false)})});return}
 if(a=='rm'){var oi=+b.dataset.i,op=OD.ph[oi];if(!op)return;OD.ph.splice(oi,1);dropId(op.id);if(op.cv&&OD.ph[0])OD.ph[0].cv=1;oSave();oRender(false);return}
 if(a=='cv'){OD.ph.forEach(function(p,j){p.cv=j==+b.dataset.i?1:0});oSave();oRender(false);return}
